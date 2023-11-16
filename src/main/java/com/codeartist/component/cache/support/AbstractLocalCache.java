@@ -17,16 +17,16 @@ public abstract class AbstractLocalCache extends AbstractCacheSupport implements
         super(type, metrics);
     }
 
-    protected abstract <T> T doGet(String key);
+    protected abstract <T> T doGet(Object key);
 
-    protected abstract void doSet(String key, Object data);
+    protected abstract void doSet(Object key, Object data);
 
     @Override
-    public <T> T get(String key, Supplier<T> valueLoader) {
-        checkKey(key);
+    public <T> T get(Object key, Supplier<T> valueLoader) {
+        checkNull(key);
         ValueWrapper<T> data = doGet(key);
         if (data == null) {
-            miss(key);
+            miss(key.toString());
             if (valueLoader != null) {
                 T obj = valueLoader.get();
                 doSet(key, (ValueWrapper<T>) () -> obj);
@@ -35,12 +35,12 @@ public abstract class AbstractLocalCache extends AbstractCacheSupport implements
                 return null;
             }
         }
-        hit(key);
+        hit(key.toString());
         return data.get();
     }
 
     @Override
-    public void set(String key, Object data) {
+    public void set(Object key, Object data) {
         doSet(key, (ValueWrapper<Object>) () -> data);
     }
 

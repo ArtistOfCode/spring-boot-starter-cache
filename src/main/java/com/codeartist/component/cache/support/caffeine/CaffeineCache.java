@@ -13,26 +13,26 @@ import com.github.benmanes.caffeine.cache.Cache;
  */
 public class CaffeineCache extends AbstractLocalCache {
 
-    private final Cache<String, Object> cache;
+    private final Cache<Object, Object> cache;
 
-    public CaffeineCache(Cache<String, Object> cache, Metrics metrics) {
+    public CaffeineCache(Cache<Object, Object> cache, Metrics metrics) {
         super(CacheType.CAFFEINE, metrics);
         this.cache = cache;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    protected <T> T doGet(String key) {
+    protected <T> T doGet(Object key) {
         return (T) cache.getIfPresent(key);
     }
 
     @Override
-    protected void doSet(String key, Object data) {
+    protected void doSet(Object key, Object data) {
         cache.put(key, data);
     }
 
     @Override
-    public void delete(String key) {
+    public void delete(Object key) {
         cache.invalidate(key);
     }
 }

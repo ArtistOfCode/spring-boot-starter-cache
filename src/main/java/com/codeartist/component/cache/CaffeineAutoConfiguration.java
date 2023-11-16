@@ -22,13 +22,13 @@ public class CaffeineAutoConfiguration {
 
     @Bean
     @Primary
-    public Cache<String, Object> defaultCache() {
+    public Cache<Object, Object> defaultCache() {
         return Caffeine.newBuilder().maximumSize(1_000).build();
     }
 
     @Bean
     @Primary
-    public LocalCache defaultLocalCache(Cache<String, Object> defaultCache, Metrics metrics) {
+    public LocalCache defaultLocalCache(Cache<Object, Object> defaultCache, Metrics metrics) {
         return new CaffeineCache(defaultCache, metrics);
     }
 }

@@ -33,6 +33,10 @@ public abstract class AbstractCacheSupport {
         metrics.counter(CACHE_MISS_METRIC, "type", type.name(), "key", key.split(CacheProperties.DELIMITER)[0]);
     }
 
+    protected void checkNull(Object key) {
+        Assert.notNull(key, () -> new CacheException("Cache key is null."));
+    }
+
     protected void checkKey(String key) {
         Assert.notBlank(key, () -> new CacheException("Cache key is blank."));
     }

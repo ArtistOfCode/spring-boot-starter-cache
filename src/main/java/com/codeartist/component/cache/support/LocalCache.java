@@ -10,13 +10,13 @@ import java.util.function.Supplier;
  */
 public interface LocalCache {
 
-    default <T> T get(String key) {
+    default <T> T get(Object key) {
         return get(key, null);
     }
 
-    <T> T get(String key, Supplier<T> valueLoader);
+    <T> T get(Object key, Supplier<T> valueLoader);
 
-    void set(String key, Object data);
+    void set(Object key, Object data);
 
-    void delete(String key);
+    void delete(Object key);
 }
