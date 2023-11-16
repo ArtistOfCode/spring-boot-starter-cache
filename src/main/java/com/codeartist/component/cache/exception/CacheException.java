@@ -3,7 +3,7 @@ package com.codeartist.component.cache.exception;
 /**
  * 缓存异常
  *
- * @author 艾江南
+ * @author AiJiangnan
  * @date 2022/4/25
  */
 public class CacheException extends RuntimeException {

@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.codeartist</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>1.0.1-SNAPSHOT</version>
     </parent>
     <artifactId>spring-boot-starter-cache</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <description>缓存组件</description>
 

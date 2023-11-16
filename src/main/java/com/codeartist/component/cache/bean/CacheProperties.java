@@ -1,31 +1,33 @@
 package com.codeartist.component.cache.bean;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
 
 /**
  * 缓存配置
  *
- * @author 艾江南
+ * @author AiJiangnan
  * @date 2021/5/24
  */
-@Getter
-@Setter
-@ConfigurationProperties(prefix = "spring.cache")
+@Data
+@ConfigurationProperties("spring.cache")
 public class CacheProperties {
 
     public static final String DELIMITER = ":";
 
-    /**
-     * null存储过期时间
-     */
-    private Integer nullTimeout = 2 * 60;
+    private Duration nullTimeout = Duration.ofMinutes(2);
+
+    private Caffeine caffeine = new Caffeine();
 
     private Redis redis = new Redis();
 
-    @Getter
-    @Setter
+    @Data
+    public static class Caffeine {
+    }
+
+    @Data
     public static class Redis {
     }
 }

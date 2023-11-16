@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import java.util.Map;
 
 /**
- * @author J.N.AI
+ * @author AiJiangnan
  * @date 2023/7/20
  */
 @Data
