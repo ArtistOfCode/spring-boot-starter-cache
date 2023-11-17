@@ -31,6 +31,10 @@ public class SpringRedisCache extends AbstractRedisCache {
     @Override
     protected void doSetRaw(String key, byte[] data, Duration duration) {
         stringRedisTemplate.execute((RedisCallback<?>) connection -> {
+            if (Duration.ZERO.equals(duration)) {
+                connection.set(rawKey(key), data);
+                return null;
+            }
             connection.pSetEx(rawKey(key), duration.toMillis(), data);
             return null;
         });
