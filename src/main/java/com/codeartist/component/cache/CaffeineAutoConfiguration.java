@@ -1,7 +1,7 @@
 package com.codeartist.component.cache;
 
-import com.codeartist.component.cache.support.LocalCache;
-import com.codeartist.component.cache.support.caffeine.CaffeineCache;
+import com.codeartist.component.cache.core.LocalCache;
+import com.codeartist.component.cache.core.caffeine.CaffeineCache;
 import com.codeartist.component.core.support.metric.Metrics;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

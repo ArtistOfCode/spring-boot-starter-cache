@@ -1,4 +1,4 @@
-package com.codeartist.component.cache.support;
+package com.codeartist.component.cache.core;
 
 import com.codeartist.component.cache.bean.CacheType;
 import com.codeartist.component.core.support.metric.Metrics;

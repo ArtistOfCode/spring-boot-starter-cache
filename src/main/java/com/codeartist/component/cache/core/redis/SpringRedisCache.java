@@ -1,4 +1,4 @@
-package com.codeartist.component.cache.support.redis;
+package com.codeartist.component.cache.core.redis;
 
 import com.codeartist.component.cache.bean.CacheProperties;
 import com.codeartist.component.core.support.metric.Metrics;

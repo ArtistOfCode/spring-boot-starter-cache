@@ -1,8 +1,8 @@
 package com.codeartist.component.cache.bean;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.Map;
 
@@ -11,8 +11,8 @@ import java.util.Map;
  * @date 2023/7/20
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class RedisMultiProperties extends RedisProperties {
+@ConfigurationProperties(prefix = "spring.redis")
+public class RedisMultiProperties {
 
     private Map<String, RedisProperties> multi;
 }

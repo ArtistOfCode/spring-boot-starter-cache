@@ -1,5 +1,6 @@
-package com.codeartist.component.cache.support;
+package com.codeartist.component.cache.core.redis;
 
+import com.codeartist.component.cache.core.Cache;
 import com.codeartist.component.core.support.serializer.TypeRef;
 
 import java.time.Duration;

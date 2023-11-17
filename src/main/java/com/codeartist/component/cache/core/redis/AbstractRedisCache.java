@@ -1,9 +1,8 @@
-package com.codeartist.component.cache.support.redis;
+package com.codeartist.component.cache.core.redis;
 
 import com.codeartist.component.cache.bean.CacheProperties;
 import com.codeartist.component.cache.bean.CacheType;
-import com.codeartist.component.cache.support.AbstractCache;
-import com.codeartist.component.cache.support.RedisCache;
+import com.codeartist.component.cache.core.AbstractCache;
 import com.codeartist.component.core.support.metric.Metrics;
 import com.codeartist.component.core.support.serializer.TypeRef;
 
