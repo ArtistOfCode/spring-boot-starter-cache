@@ -2,6 +2,7 @@ package com.codeartist.component.cache;
 
 import com.codeartist.component.cache.core.LocalCache;
 import com.codeartist.component.cache.core.caffeine.CaffeineCache;
+import com.codeartist.component.core.entity.enums.Constants;
 import com.codeartist.component.core.support.metric.Metrics;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -20,7 +21,7 @@ import org.springframework.context.annotation.Primary;
 @ConditionalOnClass(Caffeine.class)
 public class CaffeineAutoConfiguration {
 
-    @Bean
+    @Bean(Constants.DEFAULT)
     @Primary
     public Cache<Object, Object> defaultCache() {
         return Caffeine.newBuilder().maximumSize(1_000).build();

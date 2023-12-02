@@ -4,6 +4,7 @@ import com.codeartist.component.cache.bean.CacheProperties;
 import com.codeartist.component.core.support.metric.Metrics;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -29,9 +30,15 @@ public class SpringRedisCache extends AbstractRedisCache {
     }
 
     @Override
+    protected byte[] doGetExRaw(String key, Duration duration) {
+        return stringRedisTemplate.execute(
+                (RedisCallback<byte[]>) connection -> connection.getEx(rawKey(key), Expiration.from(duration)));
+    }
+
+    @Override
     protected void doSetRaw(String key, byte[] data, Duration duration) {
         stringRedisTemplate.execute((RedisCallback<?>) connection -> {
-            if (Duration.ZERO.equals(duration)) {
+            if (INFINITE_DURATION.equals(duration)) {
                 connection.set(rawKey(key), data);
                 return null;
             }

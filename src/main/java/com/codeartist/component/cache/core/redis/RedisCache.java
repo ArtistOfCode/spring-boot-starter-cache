@@ -13,6 +13,10 @@ import java.time.Duration;
  */
 public interface RedisCache extends Cache {
 
+    <T> T getEx(String key, Duration duration, Class<T> clazz);
+
+    <T> T getEx(String key, Duration duration, TypeRef<T> clazz);
+
     <T> T getHash(String key, String hashKey, Class<T> clazz);
 
     <T> T getHash(String key, String hashKey, TypeRef<T> clazz);
