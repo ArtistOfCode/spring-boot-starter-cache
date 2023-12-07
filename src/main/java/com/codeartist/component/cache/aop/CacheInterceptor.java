@@ -14,6 +14,7 @@ import org.springframework.aop.framework.AopProxyUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.time.Duration;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -55,6 +56,8 @@ public class CacheInterceptor implements MethodInterceptor {
         if (cacheOperation != null) {
 
             String[] cacheNameArr = cacheOperation.getName();
+            String key = cacheOperation.getKey();
+            Duration duration = cacheOperation.getDuration();
 
             Assert.state(cacheOperation.isCombine() ? cacheNameArr.length == 2 : cacheNameArr.length == 1,
                     exception("Cache name length error, single cache is 1, combine cache is 2."));
@@ -66,27 +69,21 @@ public class CacheInterceptor implements MethodInterceptor {
                 localCacheName = cacheNameArr[0];
                 cacheName = cacheNameArr[1];
 
-                LocalCache localCache = localCacheMap.get(localCacheName);
-                Assert.notNull(localCache, exception("Local cache bean is null."));
+                LocalCache localCache = getLocalCache(localCacheName);
+                Cache cache = getCache(cacheName);
 
-                Cache cache = cacheMap.get(cacheName);
-                Assert.notNull(cache, exception("Cache bean is null."));
-
-                returnValue = localCache.get(cacheOperation.getKey(), () ->
-                        cache.get(cacheOperation.getKey(), cacheOperation.getDuration(), getTypeRef(method), invoker));
+                returnValue = localCache.get(key, () -> cache.get(key, duration, getTypeRef(method), invoker));
 
             } else {
                 localCacheName = cacheNameArr[0];
                 cacheName = cacheNameArr[0];
 
                 if (cacheOperation.isLocal()) {
-                    LocalCache localCache = localCacheMap.get(localCacheName);
-                    Assert.notNull(localCache, exception("Local cache bean is null."));
-                    returnValue = localCache.get(cacheOperation.getKey(), invoker);
+                    LocalCache localCache = getLocalCache(localCacheName);
+                    returnValue = localCache.get(key, invoker);
                 } else {
-                    Cache cache = cacheMap.get(cacheName);
-                    Assert.notNull(cache, exception("Cache bean is null."));
-                    returnValue = cache.get(cacheOperation.getKey(), cacheOperation.getDuration(), getTypeRef(method), invoker);
+                    Cache cache = getCache(cacheName);
+                    returnValue = cache.get(key, duration, getTypeRef(method), invoker);
                 }
             }
         }
@@ -94,6 +91,7 @@ public class CacheInterceptor implements MethodInterceptor {
         returnValue = returnValue != null ? returnValue : invoker.get();
 
         if (cacheDeleteOperation != null) {
+            String key = cacheDeleteOperation.getKey();
             String[] cacheNameArr = cacheDeleteOperation.getName();
 
             Assert.state(cacheDeleteOperation.isCombine() ? cacheNameArr.length == 2 : cacheNameArr.length == 1,
@@ -101,20 +99,30 @@ public class CacheInterceptor implements MethodInterceptor {
 
             if (cacheDeleteOperation.isCombine() || cacheDeleteOperation.isLocal()) {
                 String localCacheName = cacheNameArr[0];
-                LocalCache localCache = localCacheMap.get(localCacheName);
-                Assert.notNull(localCache, exception("Local cache bean is null."));
-                localCache.delete(cacheDeleteOperation.getKey());
+                LocalCache localCache = getLocalCache(localCacheName);
+                localCache.delete(key);
             }
 
             if (cacheDeleteOperation.isCombine() || !cacheDeleteOperation.isLocal()) {
                 String cacheName = cacheDeleteOperation.isCombine() ? cacheNameArr[1] : cacheNameArr[0];
-                Cache cache = cacheMap.get(cacheName);
-                Assert.notNull(cache, exception("Cache bean is null."));
-                cache.delete(cacheDeleteOperation.getKey());
+                Cache cache = getCache(cacheName);
+                cache.delete(key);
             }
         }
 
         return returnValue;
+    }
+
+    private LocalCache getLocalCache(String localCacheName) {
+        LocalCache localCache = localCacheMap.get(localCacheName);
+        Assert.notNull(localCache, exception("Local cache bean is null."));
+        return localCache;
+    }
+
+    private Cache getCache(String cacheName) {
+        Cache cache = cacheMap.get(cacheName);
+        Assert.notNull(cache, exception("Cache bean is null."));
+        return cache;
     }
 
     private Class<?> getTargetClass(Object target) {
