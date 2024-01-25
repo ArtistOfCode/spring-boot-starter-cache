@@ -15,6 +15,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
+import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
@@ -44,7 +45,13 @@ public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, Enviro
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-        RedisMultiProperties multiProperties = Binder.get(environment).bind(SPRING_REDIS_PREFIX, RedisMultiProperties.class).get();
+        BindResult<RedisMultiProperties> bindResult = Binder.get(environment).bind(SPRING_REDIS_PREFIX, RedisMultiProperties.class);
+
+        if (!bindResult.isBound()) {
+            return;
+        }
+
+        RedisMultiProperties multiProperties = bindResult.get();
 
         if (CollectionUtils.isEmpty(multiProperties.getMulti())) {
             return;
