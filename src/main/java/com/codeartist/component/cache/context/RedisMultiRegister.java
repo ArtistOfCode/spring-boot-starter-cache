@@ -21,8 +21,6 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 
@@ -58,28 +56,16 @@ public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, Enviro
         }
 
         multiProperties.getMulti().forEach((name, properties) -> {
-            registerConnectionBean(registry, name, properties);
-            registerTemplateBean(registry, name);
+            registerTemplateBean(registry, name, properties);
             registerRedisCacheBean(registry, name);
         });
     }
 
-    private void registerConnectionBean(BeanDefinitionRegistry registry, String name, RedisProperties properties) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisConnectionFactory.class, () -> {
+    private void registerTemplateBean(BeanDefinitionRegistry registry, String name, RedisProperties properties) {
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StringRedisTemplate.class, () -> {
             ClientResources clientResources = beanFactory.getBean(ClientResources.class);
             RedisLettuceConnectionFactory factory = new RedisLettuceConnectionFactory(properties, clientResources);
-            return factory.buildStandaloneConnectionFactory();
-        });
-        AbstractBeanDefinition definition = builder.getRawBeanDefinition();
-        definition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_NAME);
-        registry.registerBeanDefinition(name + CONNECTION_FACTORY_BEAN_NAME, definition);
-        printRegisterBeanLog(name + CONNECTION_FACTORY_BEAN_NAME, LettuceConnectionFactory.class.getName());
-    }
-
-    private void registerTemplateBean(BeanDefinitionRegistry registry, String name) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StringRedisTemplate.class, () -> {
-            LettuceConnectionFactory factory = beanFactory.getBean(name + CONNECTION_FACTORY_BEAN_NAME, LettuceConnectionFactory.class);
-            return new StringRedisTemplate(factory);
+            return new StringRedisTemplate(factory.buildStandaloneConnectionFactory());
         });
         AbstractBeanDefinition definition = builder.getRawBeanDefinition();
         definition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_NAME);
