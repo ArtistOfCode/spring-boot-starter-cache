@@ -35,7 +35,6 @@ public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, Enviro
 
     private static final String REDIS_CACHE_BEAN_NAME = "RedisCache";
     private static final String SPRING_REDIS_PREFIX = "spring.redis";
-    private static final String CONNECTION_FACTORY_BEAN_NAME = "LettuceConnectionFactory";
     private static final String REDIS_TEMPLATE_BEAN_NAME = "RedisTemplate";
 
     private BeanFactory beanFactory;
