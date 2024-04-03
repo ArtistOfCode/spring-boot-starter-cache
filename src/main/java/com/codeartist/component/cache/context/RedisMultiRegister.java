@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -24,6 +24,8 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.CollectionUtils;
 
+import java.util.function.Function;
+
 /**
  * Redis多数据连接注册Bean
  *
@@ -33,9 +35,7 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, EnvironmentAware, BeanFactoryAware {
 
-    private static final String REDIS_CACHE_BEAN_NAME = "RedisCache";
     private static final String SPRING_REDIS_PREFIX = "spring.redis";
-    private static final String REDIS_TEMPLATE_BEAN_NAME = "RedisTemplate";
 
     private BeanFactory beanFactory;
     private Environment environment;
@@ -55,35 +55,36 @@ public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, Enviro
         }
 
         multiProperties.getMulti().forEach((name, properties) -> {
-            registerTemplateBean(registry, name, properties);
-            registerRedisCacheBean(registry, name);
+            registerBean(registry, name, StringRedisTemplate.class, n -> instanceStringRedisTemplate(properties));
+            registerBean(registry, name, RedisCache.class, this::instanceRedisCache);
         });
     }
 
-    private void registerTemplateBean(BeanDefinitionRegistry registry, String name, RedisProperties properties) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(StringRedisTemplate.class, () -> {
-            ClientResources clientResources = beanFactory.getBean(ClientResources.class);
-            RedisLettuceConnectionFactory factory = new RedisLettuceConnectionFactory(properties, clientResources);
-            return new StringRedisTemplate(factory.buildStandaloneConnectionFactory());
-        });
-        AbstractBeanDefinition definition = builder.getRawBeanDefinition();
-        definition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_NAME);
-        registry.registerBeanDefinition(name + REDIS_TEMPLATE_BEAN_NAME, definition);
-        printRegisterBeanLog(name + REDIS_TEMPLATE_BEAN_NAME, StringRedisTemplate.class.getName());
+    private StringRedisTemplate instanceStringRedisTemplate(RedisProperties properties) {
+        ClientResources clientResources = beanFactory.getBean(ClientResources.class);
+        RedisLettuceConnectionFactory factory = new RedisLettuceConnectionFactory(properties, clientResources);
+        return new StringRedisTemplate(factory.buildStandaloneConnectionFactory());
     }
 
-    private void registerRedisCacheBean(BeanDefinitionRegistry registry, String name) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(RedisCache.class, () -> {
-            Metrics metrics = beanFactory.getBean(Metrics.class);
-            CacheProperties cacheProperties = beanFactory.getBean(CacheProperties.class);
-            StringRedisTemplate redisTemplate = beanFactory.getBean(name + REDIS_TEMPLATE_BEAN_NAME, StringRedisTemplate.class);
+    private RedisCache instanceRedisCache(String name) {
+        Metrics metrics = beanFactory.getBean(Metrics.class);
+        CacheProperties cacheProperties = beanFactory.getBean(CacheProperties.class);
+        StringRedisTemplate redisTemplate = beanFactory
+                .getBean(name + StringRedisTemplate.class.getSimpleName(), StringRedisTemplate.class);
+        return new SpringRedisCache(redisTemplate, cacheProperties, metrics);
+    }
 
-            return new SpringRedisCache(redisTemplate, cacheProperties, metrics);
-        });
-        AbstractBeanDefinition definition = builder.getRawBeanDefinition();
-        definition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_NAME);
-        registry.registerBeanDefinition(name + REDIS_CACHE_BEAN_NAME, definition);
-        printRegisterBeanLog(name + REDIS_CACHE_BEAN_NAME, RedisCache.class.getName());
+    private <T> void registerBean(BeanDefinitionRegistry registry, String name, Class<T> beanClass,
+                                  Function<String, T> instanceFunction) {
+
+        String beanName = name + beanClass.getSimpleName();
+
+        BeanDefinition definition = BeanDefinitionBuilder.genericBeanDefinition(beanClass, () -> instanceFunction.apply(name))
+                .setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_NAME)
+                .getRawBeanDefinition();
+
+        registry.registerBeanDefinition(beanName, definition);
+        log.info("Bean '{}' of type [{}] is registered", beanName, beanClass.getName());
     }
 
     @Override
@@ -94,9 +95,5 @@ public class RedisMultiRegister implements ImportBeanDefinitionRegistrar, Enviro
     @Override
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
         this.beanFactory = beanFactory;
-    }
-
-    private void printRegisterBeanLog(String beanName, String type) {
-        log.info("Bean '{}' of type [{}] is registered", beanName, type);
     }
 }
