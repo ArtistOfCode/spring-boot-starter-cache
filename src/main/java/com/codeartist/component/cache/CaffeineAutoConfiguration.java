@@ -5,9 +5,9 @@ import com.codeartist.component.cache.core.caffeine.CaffeineCache;
 import com.codeartist.component.core.support.metric.Metrics;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Primary;
  * @author AiJiangnan
  * @date 2023-11-16
  */
-@SpringBootConfiguration
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(Caffeine.class)
 public class CaffeineAutoConfiguration {
 
