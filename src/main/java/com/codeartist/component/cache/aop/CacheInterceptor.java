@@ -3,6 +3,7 @@ package com.codeartist.component.cache.aop;
 import com.codeartist.component.cache.bean.CacheAction;
 import com.codeartist.component.cache.core.Cache;
 import com.codeartist.component.cache.core.LocalCache;
+import com.codeartist.component.cache.core.redis.RedisCache;
 import com.codeartist.component.cache.exception.CacheException;
 import com.codeartist.component.core.support.serializer.TypeRef;
 import com.codeartist.component.core.util.Assert;
@@ -42,6 +43,23 @@ public class CacheInterceptor implements MethodInterceptor {
         CacheOperation cacheDeleteOperation = ops.get(CacheAction.CACHE_DELETE);
         CacheOperation cacheLockOperation = ops.get(CacheAction.CACHE_LOCK);
 
+        if (cacheLockOperation != null) {
+            String[] name = cacheLockOperation.getName();
+            String key = cacheLockOperation.getKey();
+            Duration duration = cacheLockOperation.getDuration();
+
+            Assert.state(name.length != 1,
+                    exception("Cache lock name length error, lock cache must be 1."));
+            RedisCache cache = ((RedisCache) getCache(name[0]));
+
+        }
+
+
+        return invokeWithCache(invocation, cacheOperation, cacheDeleteOperation);
+    }
+
+    private Object invokeWithCache(MethodInvocation invocation, CacheOperation cacheOperation, CacheOperation cacheDeleteOperation) {
+        Method method = invocation.getMethod();
 
         Supplier<Object> invoker = () -> {
             try {
@@ -65,6 +83,7 @@ public class CacheInterceptor implements MethodInterceptor {
             String localCacheName;
             String cacheName;
 
+            // 二级缓存
             if (cacheOperation.isCombine()) {
                 localCacheName = cacheNameArr[0];
                 cacheName = cacheNameArr[1];
@@ -75,9 +94,11 @@ public class CacheInterceptor implements MethodInterceptor {
                 returnValue = localCache.get(key, () -> cache.get(key, duration, getTypeRef(method), invoker));
 
             } else {
+                // 一组缓存
                 localCacheName = cacheNameArr[0];
                 cacheName = cacheNameArr[0];
 
+                // 本地缓存
                 if (cacheOperation.isLocal()) {
                     LocalCache localCache = getLocalCache(localCacheName);
                     returnValue = localCache.get(key, invoker);
