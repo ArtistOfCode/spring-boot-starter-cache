@@ -2,9 +2,8 @@ package com.codeartist.component.cache.core;
 
 import com.codeartist.component.cache.bean.CacheProperties;
 import com.codeartist.component.cache.bean.CacheType;
-import com.codeartist.component.cache.exception.CacheException;
 import com.codeartist.component.core.support.metric.Metrics;
-import com.codeartist.component.core.util.Assert;
+import org.springframework.util.Assert;
 
 /**
  * 缓存支持
@@ -34,10 +33,10 @@ public abstract class AbstractCacheSupport {
     }
 
     protected void checkNull(Object key) {
-        Assert.notNull(key, () -> new CacheException("Cache key is null."));
+        Assert.notNull(key, "Cache key is null.");
     }
 
     protected void checkKey(String key) {
-        Assert.notBlank(key, () -> new CacheException("Cache key is blank."));
+        Assert.hasText(key, "Cache key is blank.");
     }
 }

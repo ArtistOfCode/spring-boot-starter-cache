@@ -4,14 +4,13 @@ import com.codeartist.component.cache.bean.CacheAction;
 import com.codeartist.component.cache.core.Cache;
 import com.codeartist.component.cache.core.LocalCache;
 import com.codeartist.component.cache.core.redis.RedisCache;
-import com.codeartist.component.cache.exception.CacheException;
 import com.codeartist.component.core.support.serializer.TypeRef;
-import com.codeartist.component.core.util.Assert;
 import lombok.Getter;
 import lombok.Setter;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.util.Assert;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -48,8 +47,7 @@ public class CacheInterceptor implements MethodInterceptor {
             String key = cacheLockOperation.getKey();
             Duration duration = cacheLockOperation.getDuration();
 
-            Assert.state(name.length != 1,
-                    exception("Cache lock name length error, lock cache must be 1."));
+            Assert.state(name.length != 1, "Cache lock name length error, lock cache must be 1.");
             RedisCache cache = ((RedisCache) getCache(name[0]));
 
         }
@@ -65,7 +63,7 @@ public class CacheInterceptor implements MethodInterceptor {
             try {
                 return invocation.proceed();
             } catch (Throwable ex) {
-                throw new CacheException(ex);
+                throw new RuntimeException(ex);
             }
         };
 
@@ -78,7 +76,7 @@ public class CacheInterceptor implements MethodInterceptor {
             Duration duration = cacheOperation.getDuration();
 
             Assert.state(cacheOperation.isCombine() ? cacheNameArr.length == 2 : cacheNameArr.length == 1,
-                    exception("Cache name length error, single cache is 1, combine cache is 2."));
+                    "Cache name length error, single cache is 1, combine cache is 2.");
 
             String localCacheName;
             String cacheName;
@@ -116,7 +114,7 @@ public class CacheInterceptor implements MethodInterceptor {
             String[] cacheNameArr = cacheDeleteOperation.getName();
 
             Assert.state(cacheDeleteOperation.isCombine() ? cacheNameArr.length == 2 : cacheNameArr.length == 1,
-                    exception("Cache name length error, single cache is 1, combine cache is 2."));
+                    "Cache name length error, single cache is 1, combine cache is 2.");
 
             if (cacheDeleteOperation.isCombine() || cacheDeleteOperation.isLocal()) {
                 String localCacheName = cacheNameArr[0];
@@ -136,13 +134,13 @@ public class CacheInterceptor implements MethodInterceptor {
 
     private LocalCache getLocalCache(String localCacheName) {
         LocalCache localCache = localCacheMap.get(localCacheName);
-        Assert.notNull(localCache, exception("Local cache bean is null."));
+        Assert.notNull(localCache, "Local cache bean is null.");
         return localCache;
     }
 
     private Cache getCache(String cacheName) {
         Cache cache = cacheMap.get(cacheName);
-        Assert.notNull(cache, exception("Cache bean is null."));
+        Assert.notNull(cache, "Cache bean is null.");
         return cache;
     }
 
@@ -157,9 +155,5 @@ public class CacheInterceptor implements MethodInterceptor {
                 return method.getGenericReturnType();
             }
         };
-    }
-
-    private Supplier<RuntimeException> exception(String message) {
-        return () -> new CacheException(message);
     }
 }
