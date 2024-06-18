@@ -47,7 +47,7 @@ public class CacheInterceptor implements MethodInterceptor {
             String key = cacheLockOperation.getKey();
             Duration duration = cacheLockOperation.getDuration();
 
-            Assert.state(name.length != 1, "Cache lock name length error, lock cache must be 1.");
+            Assert.state(name.length == 1, "Cache lock name length error, lock cache must be 1.");
             RedisCache cache = ((RedisCache) getCache(name[0]));
 
         }
